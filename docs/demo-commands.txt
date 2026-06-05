@@ -1,0 +1,239 @@
+# Secrets control demo commands
+#
+# Copy this file into your presenter notes, then run one section at a time
+# from the repository root. Do not paste the entire file at once during a live
+# demo; some sections intentionally create failing pull request checks.
+#
+# Prerequisites:
+# - GitHub CLI is installed and authenticated.
+# - main is protected by these required checks:
+#   - Explainability - PR security intent
+#   - Prevention - secret scan
+#   - Auditability - enforcement evidence
+# - The repository ruleset protects only the default branch, not every branch.
+
+
+# ---------------------------------------------------------------------------
+# Shared setup
+# ---------------------------------------------------------------------------
+
+REPO="BIASEDFRAMEWORK/SecurityControlPlane"
+BASE_BRANCH="main"
+EXPLAIN_BRANCH="demo/explainability-fail"
+SECRET_BRANCH="demo/prevention-block-secret"
+APPROVED_BRANCH="demo/auditability-approved"
+
+git switch "$BASE_BRANCH"
+git pull --ff-only origin "$BASE_BRANCH"
+
+
+# ---------------------------------------------------------------------------
+# Demo 1: Explainability fails when the PR body is incomplete
+# ---------------------------------------------------------------------------
+#
+# Expected result:
+# - Explainability - PR security intent: fails
+# - Prevention - secret scan: passes
+# - Auditability - enforcement evidence: fails and records the blocked decision
+
+git switch "$BASE_BRANCH"
+git pull --ff-only origin "$BASE_BRANCH"
+git switch -c "$EXPLAIN_BRANCH"
+git commit --allow-empty -m "Demo: incomplete security intent"
+git push -u origin "$EXPLAIN_BRANCH"
+
+gh pr create \
+  --repo "$REPO" \
+  --base "$BASE_BRANCH" \
+  --head "$EXPLAIN_BRANCH" \
+  --title "Demo: incomplete security intent" \
+  --body-file demo/pr-body-fail.md
+
+EXPLAIN_PR="$(gh pr view "$EXPLAIN_BRANCH" --repo "$REPO" --json number --jq .number)"
+gh pr checks "$EXPLAIN_PR" --repo "$REPO" --watch || true
+
+
+# ---------------------------------------------------------------------------
+# Demo 2: Prevention blocks a fake secret before merge
+# ---------------------------------------------------------------------------
+#
+# Expected result:
+# - Explainability - PR security intent: passes
+# - Prevention - secret scan: fails
+# - Auditability - enforcement evidence: fails and records the blocked decision
+
+git switch "$BASE_BRANCH"
+git pull --ff-only origin "$BASE_BRANCH"
+git switch -c "$SECRET_BRANCH"
+bash scripts/make_leaky_demo_change.sh
+git add app/payment_provider.py
+git commit -m "Demo: add provider integration"
+git push -u origin "$SECRET_BRANCH"
+
+gh pr create \
+  --repo "$REPO" \
+  --base "$BASE_BRANCH" \
+  --head "$SECRET_BRANCH" \
+  --title "Demo: add provider integration" \
+  --body-file demo/pr-body-pass.md
+
+SECRET_PR="$(gh pr view "$SECRET_BRANCH" --repo "$REPO" --json number --jq .number)"
+gh pr checks "$SECRET_PR" --repo "$REPO" --watch || true
+
+
+# ---------------------------------------------------------------------------
+# Demo 3: Auditability produces downloadable evidence
+# ---------------------------------------------------------------------------
+#
+# Expected result:
+# - The auditability workflow has a job summary.
+# - The security-enforcement-evidence artifact contains Markdown and JSON.
+# - On the prevention-failure PR, the audit report decision is blocked.
+
+SECRET_AUDIT_RUN="$(
+  gh run list \
+    --repo "$REPO" \
+    --branch "$SECRET_BRANCH" \
+    --workflow "Auditability Control" \
+    --limit 1 \
+    --json databaseId \
+    --jq '.[0].databaseId'
+)"
+
+gh run watch "$SECRET_AUDIT_RUN" --repo "$REPO" || true
+gh run view "$SECRET_AUDIT_RUN" --repo "$REPO"
+
+SECRET_AUDIT_DIR="/tmp/security-enforcement-evidence-${SECRET_PR}"
+mkdir -p "$SECRET_AUDIT_DIR"
+gh run download "$SECRET_AUDIT_RUN" \
+  --repo "$REPO" \
+  --name security-enforcement-evidence \
+  --dir "$SECRET_AUDIT_DIR"
+
+sed -n '1,200p' "$SECRET_AUDIT_DIR/security-audit-report.md"
+
+
+# ---------------------------------------------------------------------------
+# Optional: Fix the blocked secret PR and show the checks turning green
+# ---------------------------------------------------------------------------
+#
+# This proves the same PR can move from blocked to approved after the unsafe
+# value is removed. For a real secret incident, do not merge a branch that ever
+# contained a real secret in its history unless your merge method prevents that
+# commit from entering main.
+
+git switch "$SECRET_BRANCH"
+bash scripts/make_safe_demo_change.sh
+git add app/payment_provider.py
+git commit -m "Use runtime environment for provider token"
+git push
+
+gh pr checks "$SECRET_PR" --repo "$REPO" --watch
+
+FIXED_AUDIT_RUN="$(
+  gh run list \
+    --repo "$REPO" \
+    --branch "$SECRET_BRANCH" \
+    --workflow "Auditability Control" \
+    --limit 1 \
+    --json databaseId \
+    --jq '.[0].databaseId'
+)"
+
+FIXED_AUDIT_DIR="/tmp/security-enforcement-evidence-fixed-${SECRET_PR}"
+mkdir -p "$FIXED_AUDIT_DIR"
+gh run download "$FIXED_AUDIT_RUN" \
+  --repo "$REPO" \
+  --name security-enforcement-evidence \
+  --dir "$FIXED_AUDIT_DIR"
+
+sed -n '1,200p' "$FIXED_AUDIT_DIR/security-audit-report.md"
+
+
+# ---------------------------------------------------------------------------
+# Optional: Create a clean PR where all three workflows pass
+# ---------------------------------------------------------------------------
+#
+# Expected result:
+# - Explainability - PR security intent: passes
+# - Prevention - secret scan: passes
+# - Auditability - enforcement evidence: passes and records approved
+
+cat > /tmp/pr-body-no-sensitive-change.md <<'BODY'
+## Summary
+
+Creates an empty demonstration change so the required checks can run.
+
+## Security intent
+
+### Does this change touch secrets, credentials, tokens, environment variables, or sensitive configuration?
+
+- [ ] Yes - this change touches secrets, credentials, tokens, environment variables, or sensitive configuration
+- [x] No - this change does not touch secrets, credentials, tokens, environment variables, or sensitive configuration
+
+### Areas touched
+
+- [ ] Secrets, credentials, tokens, or keys
+- [ ] Environment variables
+- [ ] Sensitive configuration
+- [x] None of the above
+
+### Explanation
+
+This PR uses an empty commit and does not change application behavior or sensitive configuration.
+
+### Safety validation / evidence
+
+The change is intentionally empty, and the required workflows prove the controls can complete successfully.
+BODY
+
+git switch "$BASE_BRANCH"
+git pull --ff-only origin "$BASE_BRANCH"
+git switch -c "$APPROVED_BRANCH"
+git commit --allow-empty -m "Demo: approved audit evidence"
+git push -u origin "$APPROVED_BRANCH"
+
+gh pr create \
+  --repo "$REPO" \
+  --base "$BASE_BRANCH" \
+  --head "$APPROVED_BRANCH" \
+  --title "Demo: approved audit evidence" \
+  --body-file /tmp/pr-body-no-sensitive-change.md
+
+APPROVED_PR="$(gh pr view "$APPROVED_BRANCH" --repo "$REPO" --json number --jq .number)"
+gh pr checks "$APPROVED_PR" --repo "$REPO" --watch
+
+APPROVED_AUDIT_RUN="$(
+  gh run list \
+    --repo "$REPO" \
+    --branch "$APPROVED_BRANCH" \
+    --workflow "Auditability Control" \
+    --limit 1 \
+    --json databaseId \
+    --jq '.[0].databaseId'
+)"
+
+APPROVED_AUDIT_DIR="/tmp/security-enforcement-evidence-approved-${APPROVED_PR}"
+mkdir -p "$APPROVED_AUDIT_DIR"
+gh run download "$APPROVED_AUDIT_RUN" \
+  --repo "$REPO" \
+  --name security-enforcement-evidence \
+  --dir "$APPROVED_AUDIT_DIR"
+
+sed -n '1,200p' "$APPROVED_AUDIT_DIR/security-audit-report.md"
+
+
+# ---------------------------------------------------------------------------
+# Optional cleanup after the demo
+# ---------------------------------------------------------------------------
+#
+# These commands close the demo PRs and delete their branches. Run only after
+# the presentation is over.
+
+gh pr close "$EXPLAIN_PR" --repo "$REPO" --delete-branch
+gh pr close "$SECRET_PR" --repo "$REPO" --delete-branch
+gh pr close "$APPROVED_PR" --repo "$REPO" --delete-branch
+
+git switch "$BASE_BRANCH"
+git pull --ff-only origin "$BASE_BRANCH"
+git branch -D "$EXPLAIN_BRANCH" "$SECRET_BRANCH" "$APPROVED_BRANCH"
