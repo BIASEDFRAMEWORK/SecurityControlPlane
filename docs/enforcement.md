@@ -25,8 +25,8 @@ Why this matters:
 
 Official GitHub references:
 
-- Pull request templates: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository
-- Status checks: https://docs.github.com/articles/about-statuses
-- Protected branches: https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches
-- Workflow artifacts: https://docs.github.com/en/actions/concepts/workflows-and-actions/workflow-artifacts
-- Job summaries: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions
+- Pull request templates: [https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository)
+- Status checks: [https://docs.github.com/articles/about-statuses](https://docs.github.com/articles/about-statuses)
+- Protected branches: [https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
+- Workflow artifacts: [https://docs.github.com/en/actions/concepts/workflows-and-actions/workflow-artifacts](https://docs.github.com/en/actions/concepts/workflows-and-actions/workflow-artifacts)
+- Job summaries: [https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions)
