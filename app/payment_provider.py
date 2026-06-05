@@ -7,7 +7,6 @@ import os
 
 
 def payment_provider_token() -> str:
-    PAYMENT_PROVIDER_TOKEN='QAZXSWEDCVFRTGBNHYTRUJNBGFDCVBHYT6543wWSD'
     token = os.environ.get("PAYMENT_PROVIDER_TOKEN")
     if not token:
         raise RuntimeError("PAYMENT_PROVIDER_TOKEN is required")
