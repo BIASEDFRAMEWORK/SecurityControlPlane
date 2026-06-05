@@ -1,11 +1,13 @@
-"""Intentionally unsafe demo change.
+"""Safe payment provider configuration.
 
-This file is generated for the prevention demo. It contains a fake canary
-secret so the GitHub Actions gate has something concrete to block.
+The token is read from the runtime environment and is never stored in source.
 """
 
-PAYMENT_PROVIDER_TOKEN = "DEMO_SECRET_8X4P0Q9Z7M2N6R1T5V3Y"
+import os
 
 
 def payment_provider_token() -> str:
-    return PAYMENT_PROVIDER_TOKEN
+    token = os.environ.get("PAYMENT_PROVIDER_TOKEN")
+    if not token:
+        raise RuntimeError("PAYMENT_PROVIDER_TOKEN is required")
+    return token
