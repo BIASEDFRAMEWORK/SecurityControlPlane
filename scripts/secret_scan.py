@@ -15,6 +15,15 @@ from typing import Any, Iterable
 
 
 MAX_FILE_BYTES = 2_000_000
+AWS_SECRET_ACCESS_KEY_NAME_PATTERN = r"\baws[_-]?secret[_-]?access[_-]?key\b"
+SENSITIVE_NAME_PATTERN = (
+    r"\b"
+    r"(?=[A-Za-z_][A-Za-z0-9_-]*"
+    r"(?:api[_-]?key|secret|token|password|client[_-]?secret|credential))"
+    r"[A-Za-z_][A-Za-z0-9_-]*"
+    r"\b"
+)
+SECRET_VALUE_PATTERN = r"([A-Za-z0-9_./+=-]{24,})"
 
 
 @dataclass(frozen=True)
@@ -36,6 +45,15 @@ RULES = [
         "AWS access key identifier.",
     ),
     Rule(
+        "aws-secret-access-key",
+        re.compile(
+            r"(?i)"
+            + AWS_SECRET_ACCESS_KEY_NAME_PATTERN
+            + r"\s*[:=]\s*[\"']?([A-Za-z0-9/+=]{40})"
+        ),
+        "AWS secret access key.",
+    ),
+    Rule(
         "github-token",
         re.compile(r"gh[pousr]_[A-Za-z0-9_]{36,}"),
         "GitHub token pattern.",
@@ -48,8 +66,13 @@ RULES = [
     Rule(
         "generic-sensitive-assignment",
         re.compile(
-            r"(?i)\b(?:api[_-]?key|secret|token|password|client[_-]?secret|credential)\b"
-            r"\s*[:=]\s*[\"']?([A-Za-z0-9_./+=-]{24,})"
+            r"(?i)"
+            + r"(?!"
+            + AWS_SECRET_ACCESS_KEY_NAME_PATTERN
+            + r")"
+            + SENSITIVE_NAME_PATTERN
+            + r"\s*[:=]\s*[\"']?"
+            + SECRET_VALUE_PATTERN
         ),
         "Long token-like value assigned to a sensitive name.",
     ),
