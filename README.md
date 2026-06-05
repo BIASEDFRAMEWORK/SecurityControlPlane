@@ -8,7 +8,7 @@ The demo shows how a security team can use the CI/CD platform to create three co
 | --- | --- | --- |
 | Explainability | Pull request template plus a required PR-body validation check | Developers must state whether the change touches secrets, credentials, tokens, environment variables, or sensitive configuration before review. |
 | Prevention | Required secret scan on pull requests | A fake canary secret is blocked before it can merge into `main`. |
-| Auditability | Evidence job that runs even when controls fail | The workflow records who changed it, which checks ran, what was blocked or approved, and when enforcement happened. |
+| Auditability | Separate evidence workflow that reruns the controls for its audit record | The workflow records who changed it, which checks ran, what was blocked or approved, and when enforcement happened. |
 
 ## What to show
 
@@ -43,6 +43,12 @@ python3 scripts/audit_report.py --explainability-result success --prevention-res
 The leaky script writes a fake canary secret, not a real credential. Use it only on a short-lived demo branch.
 
 ## GitHub setup
+
+The GitHub Actions controls are split into three small workflow files for teaching:
+
+- `.github/workflows/explainability.yml`
+- `.github/workflows/prevention.yml`
+- `.github/workflows/auditability.yml`
 
 After pushing this repo to GitHub, configure branch protection or a repository ruleset for `main` and require these status checks:
 
