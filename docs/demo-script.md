@@ -13,9 +13,9 @@ For the spoken version with live stage directions, use [presenter-talk-track.md]
 
 The controls are split into three teaching-sized workflow files:
 
-- `.github/workflows/explainability.yml`
-- `.github/workflows/prevention.yml`
-- `.github/workflows/auditability.yml`
+- `.github/workflows/secrets-explainability.yml`
+- `.github/workflows/secrets-prevention.yml`
+- `.github/workflows/secrets-auditability.yml`
 
 For local rehearsal before the live GitHub demo:
 

@@ -46,9 +46,9 @@ The leaky script writes a fake canary secret, not a real credential. Use it only
 
 The GitHub Actions controls are split into three small workflow files for teaching:
 
-- `.github/workflows/explainability.yml`
-- `.github/workflows/prevention.yml`
-- `.github/workflows/auditability.yml`
+- `.github/workflows/secrets-explainability.yml`
+- `.github/workflows/secrets-prevention.yml`
+- `.github/workflows/secrets-auditability.yml`
 
 After pushing this repo to GitHub, configure branch protection or a repository ruleset for `main` and require these status checks:
 

@@ -19,7 +19,7 @@ Why this matters:
 
 - The PR template encourages the right explanation, but the workflow makes it enforceable.
 - The secret scan is useful on its own, but it becomes a prevention control only when it is a required check.
-- The controls are split into `.github/workflows/explainability.yml`, `.github/workflows/prevention.yml`, and `.github/workflows/auditability.yml` so each file teaches one outcome.
+- The controls are split into `.github/workflows/secrets-explainability.yml`, `.github/workflows/secrets-prevention.yml`, and `.github/workflows/secrets-auditability.yml` so each file teaches one outcome.
 - The auditability workflow reruns the explainability and prevention checks internally, so it can still produce one evidence record when either control fails.
 - Each workflow includes `merge_group` so required checks can run in repositories that use GitHub merge queue.
 
