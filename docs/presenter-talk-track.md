@@ -34,7 +34,10 @@ Say:
 Action:
 
 - Show the repo file list.
-- Point out `.github/workflows/secrets-control.yml`.
+- Point out the three small workflow files:
+  - `.github/workflows/secrets-explainability.yml`
+  - `.github/workflows/secrets-prevention.yml`
+  - `.github/workflows/secrets-auditability.yml`
 - Point out `.github/pull_request_template.md`.
 
 Transition:

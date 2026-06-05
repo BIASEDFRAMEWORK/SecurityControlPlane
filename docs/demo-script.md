@@ -11,6 +11,12 @@ For the spoken version with live stage directions, use [presenter-talk-track.md]
    - `Prevention - secret scan`
    - `Auditability - enforcement evidence`
 
+The controls are split into three teaching-sized workflow files:
+
+- `.github/workflows/secrets-explainability.yml`
+- `.github/workflows/secrets-prevention.yml`
+- `.github/workflows/secrets-auditability.yml`
+
 For local rehearsal before the live GitHub demo:
 
 ```bash
@@ -56,7 +62,7 @@ Expected result:
 
 ## Demo 3: Auditability
 
-Open the failed workflow run and select `Auditability - enforcement evidence`.
+Open the failed auditability workflow run and select `Auditability - enforcement evidence`.
 
 Expected result:
 
